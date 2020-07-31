@@ -17,24 +17,16 @@
 from __future__ import print_function
 from ortools.constraint_solver import routing_enums_pb2
 from ortools.constraint_solver import pywrapcp
+import sys
+import re
 
 # [END import]
-
-
-# [START data_model]
-def create_data_model(distance_matrix):
-    """Stores the data for the problem."""
-    data = {}
-    data['distance_matrix'] = distance_matrix
-    data['num_vehicles'] = 1
-    data['depot'] = 0
-    return data
-    # [END data_model]
 
 
 # [START solution_printer]
 def print_solution(manager, routing, solution):
     """Prints solution on console."""
+    total_seconds = solution.ObjectiveValue()
     print('Objective: {} miles'.format(solution.ObjectiveValue()))
     index = routing.Start(0)
     plan_output = 'Route for vehicle 0:\n'
@@ -47,16 +39,14 @@ def print_solution(manager, routing, solution):
     plan_output += ' {}\n'.format(manager.IndexToNode(index))
     print(plan_output)
     plan_output += 'Route distance: {}miles\n'.format(route_distance)
+    return total_seconds, plan_output
     # [END solution_printer]
 
 
-def main():
+def tsp(data):
     """Entry point of the program."""
-    # Instantiate the data problem.
-    # [START data]
-    data = create_data_model()
-    # [END data]
-
+    # Instantiate the data problem.    
+    
     # Create the routing index manager.
     # [START index_manager]
     manager = pywrapcp.RoutingIndexManager(len(data['distance_matrix']),
@@ -100,10 +90,15 @@ def main():
     # Print solution on console.
     # [START print_solution]
     if solution:
-        print_solution(manager, routing, solution)
+        seconds, route_list = print_solution(manager, routing, solution)
+        route_list_text_match = re.match(".+vehicle\s0:\\n\s(.+0)\\n", route_list)
+        stops_as_text = route_list_text_match.group(1)
+        list_of_stops = stops_as_text.split(" -> ")
+    
+    return seconds, list_of_stops
     # [END print_solution]
 
 
-if __name__ == '__main__':
-    main()
-# [END program]
+
+
+
